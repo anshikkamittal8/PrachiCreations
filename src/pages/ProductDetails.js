@@ -83,9 +83,8 @@ const ProductDetails = () => {
                     </p>
 
                     {additionalInfo && (
-                        <div className="bg-white border border-pink-100 p-6 rounded-3xl">
-                            <h3 className="text-xl font-semibold text-[#4A3B3B] mb-2">Additional Information</h3>
-                            <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                        <div className="bg-gradient-to-br from-[#FFF7F8] to-white border border-pink-100 p-7 rounded-3xl shadow-sm">
+                            <p className="brand-font text-3xl text-[#4A3B3B] leading-relaxed whitespace-pre-line">
                                 {additionalInfo}
                             </p>
                         </div>
