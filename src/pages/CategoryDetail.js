@@ -116,20 +116,12 @@ const CategoryDetail = () => {
                                         {product.description}
                                     </p>
 
-                                    {/* Action Buttons */}
                                     <div className="flex gap-3">
-                                        {/* Replace the current button or card link with this */}
                                         <Link
                                             to={`/product/${product.id}`}
                                             className="flex-1 bg-[#FDE2E4] text-[#4A3B3B] py-3 rounded-full font-bold text-center hover:bg-pink-200 transition-colors"
                                         >
                                             Order Now
-                                        </Link>
-                                        <Link
-                                            to={`/product/${product.id}`}
-                                            className="flex-1 border border-pink-200 text-[#4A3B3B] py-3 rounded-full font-bold text-center hover:bg-pink-50 transition-colors"
-                                        >
-                                            Additional Product Details
                                         </Link>
                                     </div>
                                 </div>
