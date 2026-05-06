@@ -45,6 +45,11 @@ const ProductDetails = () => {
         product.additionalinfo ||
         '';
 
+    const additionalInfoLines = additionalInfo
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+
     return (
         <div className="min-h-screen bg-[#FFFDF9] pb-20">
             {/* Breadcrumb */}
@@ -83,10 +88,17 @@ const ProductDetails = () => {
                     </p>
 
                     {additionalInfo && (
-                        <div className="bg-gradient-to-br from-[#FFF7F8] to-white border border-pink-100 p-7 rounded-3xl shadow-sm">
-                            <p className="brand-font text-3xl text-[#4A3B3B] leading-relaxed whitespace-pre-line">
-                                {additionalInfo}
-                            </p>
+                        <div className="bg-white border border-pink-100 px-6 py-5 rounded-3xl">
+                            <div className="space-y-2">
+                                {additionalInfoLines.map((line, index) => (
+                                    <p
+                                        key={`${line}-${index}`}
+                                        className="text-base md:text-lg text-[#5C4A4A] leading-relaxed"
+                                    >
+                                        {line}
+                                    </p>
+                                ))}
+                            </div>
                         </div>
                     )}
 
