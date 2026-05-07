@@ -107,8 +107,10 @@ const CategoryDetail = () => {
                                 <div className="p-8">
                                     <div className="flex justify-between items-start mb-4">
                                         <h4 className="text-2xl font-bold text-[#4A3B3B]">{product.name}</h4>
-                                        <span className="bg-pink-50 text-pink-500 font-bold px-4 py-1 rounded-full text-sm">
-                                            {formatPrice(product.price)}
+                                        <span className="bg-pink-50 text-pink-500 font-bold px-4 py-1 rounded-full text-sm text-center">
+                                        {product.price === 0 || product.price === null 
+                                        ? "Customizable for your budget" 
+                                        : formatPrice(product.price)}
                                         </span>
                                     </div>
 

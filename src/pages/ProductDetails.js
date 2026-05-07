@@ -78,8 +78,10 @@ const ProductDetails = () => {
                 <div className="md:w-1/2 space-y-8 py-4">
                     <div>
                         <h1 className="brand-font text-6xl text-[#4A3B3B] mb-4">{product.name}</h1>
-                        <span className="text-3xl font-bold text-pink-400">
-                            ₹{Number(product.price).toLocaleString('en-IN')}
+                        <span className="bg-pink-50 text-pink-500 font-bold px-4 py-1 rounded-full text-sm">
+                            {product.price === 0 || product.price === null 
+                            ? "Customizable for your budget" 
+                            : `₹${Number(product.price).toLocaleString('en-IN')}`}
                         </span>
                     </div>
 
