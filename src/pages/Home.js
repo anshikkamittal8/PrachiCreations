@@ -54,7 +54,7 @@ const Home = () => {
                     {/* Image Container */}
                     <div className="relative z-10 overflow-hidden rounded-[2.5rem] shadow-2xl border-8 border-white bg-white">
                         <img
-                            src="home1.jpeg"
+                            src="homepage.jpeg"
                             alt="Main Gift Showcase"
                             /* 
                                Changed 'object-cover' to 'object-contain' to ensure nothing is cut off.

@@ -32,7 +32,7 @@ const ProductDetails = () => {
 
     // WHATSAPP REDIRECT LOGIC
     const handleWhatsAppOrder = () => {
-        const phoneNumber = "917735515342"; // Replace with your actual WhatsApp number
+        const phoneNumber = "917608846872"; // Replace with your actual WhatsApp number
         const message = `Hi Prachi! I just saw the "${product.name}" on your website and I'd love to order/customize it. (Ref ID: ${product.id})`;
         const encodedMessage = encodeURIComponent(message);
         window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
@@ -79,9 +79,9 @@ const ProductDetails = () => {
                     <div>
                         <h1 className="brand-font text-6xl text-[#4A3B3B] mb-4">{product.name}</h1>
                         <span className="bg-pink-50 text-pink-500 font-bold px-4 py-1 rounded-full text-sm">
-                            {product.price === 0 || product.price === null 
-                            ? "Customizable for your budget" 
-                            : `₹${Number(product.price).toLocaleString('en-IN')}`}
+                            {product.price === 0 || product.price === null
+                                ? "Customizable for your budget"
+                                : `₹${Number(product.price).toLocaleString('en-IN')}`}
                         </span>
                     </div>
 
@@ -113,7 +113,7 @@ const ProductDetails = () => {
                         </button>
 
                         <a
-                            href="https://instagram.com/prachi_creations30"
+                            href="https://instagram.com/prachicreations_30"
                             target="_blank"
                             rel="noreferrer"
                             className="w-full bg-white border-2 border-pink-100 text-[#4A3B3B] py-5 rounded-2xl font-bold text-xl hover:bg-pink-50 transition flex items-center justify-center gap-3"
