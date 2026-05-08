@@ -1,37 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
 const CategoryDetail = () => {
     const { slug } = useParams();
     const [products, setProducts] = useState([]);
+    const [filteredProducts, setFilteredProducts] = useState([]);
     const [categoryName, setCategoryName] = useState("");
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [showBackToTop, setShowBackToTop] = useState(false);
+
+    // Cloudinary Optimization Helper
+    const getOptimizedUrl = (url, width = 600) => {
+        if (!url || !url.includes('cloudinary.com')) return url;
+        return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`);
+    };
+
+    // Monitor scroll for "Back to Top" button
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowBackToTop(window.scrollY > 400);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     useEffect(() => {
         const fetchDetails = async () => {
             setLoading(true);
             try {
-                const { data: categoryData, error: catError } = await supabase
-                    .from('category')
-                    .select('id, name')
-                    .eq('slug', slug)
-                    .single();
-
-                if (catError) throw catError;
+                const { data: categoryData } = await supabase
+                    .from('category').select('id, name').eq('slug', slug).single();
 
                 if (categoryData) {
                     setCategoryName(categoryData.name);
-                    const { data: productData, error: prodError } = await supabase
-                        .from('products')
-                        .select('*')
-                        .eq('category_id', categoryData.id);
+                    const { data: productData } = await supabase
+                        .from('products').select('*').eq('category_id', categoryData.id);
 
-                    if (prodError) throw prodError;
                     setProducts(productData || []);
+                    setFilteredProducts(productData || []);
                 }
             } catch (error) {
-                console.error("Error fetching details:", error.message);
+                console.error("Error:", error.message);
             } finally {
                 setLoading(false);
             }
@@ -39,103 +50,85 @@ const CategoryDetail = () => {
         fetchDetails();
     }, [slug]);
 
-    const formatPrice = (price) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            maximumFractionDigits: 0,
-        }).format(price);
-    };
+    // --- SEARCH LOGIC ---
+    useEffect(() => {
+        const results = products.filter(product => {
+            const searchLower = searchTerm.toLowerCase();
+            // Matches Name, Description, or the word "custom" if price is 0
+            const matchesName = product.name.toLowerCase().includes(searchLower);
+            const matchesDesc = product.description?.toLowerCase().includes(searchLower);
+            const isCustomSearch = searchLower === 'custom' || searchLower === 'customize';
+            const matchesCustom = isCustomSearch && (product.price === 0 || product.price === null);
 
-    const isWeddingTrousseauPage = categoryName.toLowerCase() === 'wedding trousseau';
+            return matchesName || matchesDesc || matchesCustom;
+        });
+        setFilteredProducts(results);
+    }, [searchTerm, products]);
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-[60vh]">
-                <div className="brand-font text-2xl md:text-3xl animate-bounce text-pink-300">Loading treasures... ✨</div>
-            </div>
-        );
-    }
+    const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (loading) return <div className="h-[60vh] flex items-center justify-center brand-font text-2xl animate-pulse">Loading treasures... ✨</div>;
 
     return (
-        <div className="min-h-screen bg-[#FFFDF9] pb-20">
-            {/* Breadcrumb Navigation */}
-            <div className="px-6 md:px-10 py-4 md:py-6 text-xs md:text-sm text-gray-400">
-                <Link to="/collections" className="hover:text-pink-400">Collections</Link>
-                <span className="mx-2">/</span>
-                <span className="text-gray-600 font-semibold">{categoryName}</span>
+        <div className="min-h-screen bg-[#FFFDF9] pb-20 relative">
+
+            {/* Search Bar Section */}
+            <div className="sticky top-0 z-30 bg-[#FFFDF9]/80 backdrop-blur-md py-4 px-6 md:px-20 border-b border-pink-50">
+                <div className="max-w-xl mx-auto relative">
+                    <input
+                        type="text"
+                        placeholder="Search for 'custom', 'anniversary', 'blue'..."
+                        className="w-full pl-12 pr-4 py-3 rounded-full border border-pink-100 focus:outline-none focus:ring-2 focus:ring-pink-200 shadow-sm"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <span className="absolute left-5 top-3.5 text-gray-400">🔍</span>
+                </div>
             </div>
 
-            {/* Category Header */}
-            <header className="text-center py-8 md:py-12 px-6">
-                <h2 className="brand-font text-5xl md:text-7xl text-[#4A3B3B] mb-4">{categoryName}</h2>
-                <p className="text-gray-500 italic text-sm md:text-base">Explore our curated {categoryName.toLowerCase()} options</p>
-                {isWeddingTrousseauPage && (
-                    <p className="text-gray-600 mt-4 max-w-3xl mx-auto text-xs md:text-base">
-                        Send your items for decoration, or let us arrange and style them for you at an additional cost.
-                    </p>
-                )}
-                <div className="w-16 md:w-24 h-1 bg-pink-100 mx-auto mt-6 rounded-full"></div>
+            <header className="text-center py-10 px-6">
+                <h2 className="brand-font text-5xl md:text-7xl text-[#4A3B3B]">{categoryName}</h2>
+                <p className="text-gray-400 mt-2 italic">{filteredProducts.length} items found</p>
             </header>
 
-            {/* Products Grid */}
-            <section className="px-4 md:px-20 mt-4 md:mt-10">
-                {products.length > 0 ? (
-                    /* MOBILE FIX: grid-cols-2 for side-by-side view 
-                       GAP: smaller gap for mobile (gap-4)
-                    */
-                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-12">
-                        {products.map((product) => (
-                            <div key={product.id} className="group bg-white rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-pink-50 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col">
-
-                                {/* Image Container: Responsive heights */}
-                                <div className="h-44 md:h-80 overflow-hidden bg-gray-50 flex items-center justify-center p-2 md:p-4">
+            <section className="px-4 md:px-20 mt-6">
+                {filteredProducts.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-12">
+                        {filteredProducts.map((product, index) => (
+                            <div key={product.id} className="group bg-white rounded-[2rem] overflow-hidden border border-pink-50 shadow-sm hover:shadow-xl transition-all flex flex-col">
+                                <div className="h-44 md:h-80 overflow-hidden bg-gray-50 flex items-center justify-center p-4">
                                     <img
-                                        src={product.image_url.startsWith('http') ? product.image_url : `/${product.image_url.replace(/^\//, '')}`}
+                                        src={getOptimizedUrl(product.image_url)}
                                         alt={product.name}
-                                        className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700"
-                                        onError={(e) => {
-                                            e.target.src = 'https://via.placeholder.com/400x500?text=Product+Image';
-                                        }}
+                                        loading={index < 4 ? "eager" : "lazy"}
+                                        className="max-h-full object-contain group-hover:scale-105 transition-transform duration-500"
                                     />
                                 </div>
-
-                                {/* Product Info: Adjusted spacing for mobile */}
-                                <div className="p-3 md:p-8 flex flex-col flex-grow">
-                                    <div className="mb-2 md:mb-4">
-                                        <h4 className="text-sm md:text-2xl font-bold text-[#4A3B3B] line-clamp-1">{product.name}</h4>
-                                        <div className="mt-1">
-                                            <span className="text-pink-500 font-bold text-[10px] md:text-sm bg-pink-50 px-2 py-0.5 rounded-full inline-block">
-                                                {product.price === 0 || product.price === null
-                                                    ? "Customizable"
-                                                    : formatPrice(product.price)}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Description: Hidden or clamped on mobile to keep cards uniform */}
-                                    <p className="text-gray-500 text-[10px] md:text-sm leading-relaxed mb-4 line-clamp-2 md:line-clamp-none hidden md:block">
-                                        {product.description}
-                                    </p>
-
-                                    <div className="mt-auto">
-                                        <Link
-                                            to={`/product/${product.id}`}
-                                            className="block w-full bg-[#FDE2E4] text-[#4A3B3B] py-2 md:py-3 rounded-full font-bold text-[10px] md:text-base text-center hover:bg-pink-200 transition-colors"
-                                        >
-                                            View Details
-                                        </Link>
-                                    </div>
+                                <div className="p-4 md:p-6 flex-grow flex flex-col justify-between">
+                                    <h4 className="font-bold text-[#4A3B3B] text-sm md:text-lg line-clamp-1">{product.name}</h4>
+                                    <Link to={`/product/${product.id}`} className="mt-4 block text-center bg-pink-50 text-pink-500 py-2 rounded-xl font-bold text-xs md:text-sm hover:bg-pink-100 transition-colors">
+                                        View Details
+                                    </Link>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-20 bg-white rounded-[3rem] border border-dashed border-pink-200">
-                        <p className="text-gray-400 italic px-6">Working on new designs for this collection... check back soon! 🌸</p>
+                    <div className="text-center py-20">
+                        <p className="text-gray-400">No products match your search. Try "Custom" or "Hampers" 🌸</p>
                     </div>
                 )}
             </section>
+
+            {/* Back to Top Button */}
+            {showBackToTop && (
+                <button
+                    onClick={scrollToTop}
+                    className="fixed bottom-10 right-10 bg-white border-2 border-pink-100 text-pink-400 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-pink-50 transition-all z-50 animate-bounce"
+                >
+                    ↑
+                </button>
+            )}
         </div>
     );
 };
