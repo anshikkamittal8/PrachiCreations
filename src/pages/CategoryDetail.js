@@ -12,7 +12,6 @@ const CategoryDetail = () => {
         const fetchDetails = async () => {
             setLoading(true);
             try {
-                // 1. Find the category ID matching the URL slug
                 const { data: categoryData, error: catError } = await supabase
                     .from('category')
                     .select('id, name')
@@ -23,8 +22,6 @@ const CategoryDetail = () => {
 
                 if (categoryData) {
                     setCategoryName(categoryData.name);
-
-                    // 2. Fetch products for this category
                     const { data: productData, error: prodError } = await supabase
                         .from('products')
                         .select('*')
@@ -39,11 +36,9 @@ const CategoryDetail = () => {
                 setLoading(false);
             }
         };
-
         fetchDetails();
     }, [slug]);
 
-    // Helper to format currency (e.g., 2499 -> ₹2,499)
     const formatPrice = (price) => {
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
@@ -57,7 +52,7 @@ const CategoryDetail = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center h-[60vh]">
-                <div className="brand-font text-3xl animate-bounce text-pink-300">Loading treasures... ✨</div>
+                <div className="brand-font text-2xl md:text-3xl animate-bounce text-pink-300">Loading treasures... ✨</div>
             </div>
         );
     }
@@ -65,65 +60,70 @@ const CategoryDetail = () => {
     return (
         <div className="min-h-screen bg-[#FFFDF9] pb-20">
             {/* Breadcrumb Navigation */}
-            <div className="px-10 py-6 text-sm text-gray-400">
+            <div className="px-6 md:px-10 py-4 md:py-6 text-xs md:text-sm text-gray-400">
                 <Link to="/collections" className="hover:text-pink-400">Collections</Link>
                 <span className="mx-2">/</span>
                 <span className="text-gray-600 font-semibold">{categoryName}</span>
             </div>
 
             {/* Category Header */}
-            <header className="text-center py-12 px-6">
-                <h2 className="brand-font text-7xl text-[#4A3B3B] mb-4">{categoryName}</h2>
-                <p className="text-gray-500 italic">Explore our curated {categoryName.toLowerCase()} options</p>
+            <header className="text-center py-8 md:py-12 px-6">
+                <h2 className="brand-font text-5xl md:text-7xl text-[#4A3B3B] mb-4">{categoryName}</h2>
+                <p className="text-gray-500 italic text-sm md:text-base">Explore our curated {categoryName.toLowerCase()} options</p>
                 {isWeddingTrousseauPage && (
-                    <p className="text-gray-600 mt-4 max-w-3xl mx-auto">
+                    <p className="text-gray-600 mt-4 max-w-3xl mx-auto text-xs md:text-base">
                         Send your items for decoration, or let us arrange and style them for you at an additional cost.
                     </p>
                 )}
-                <div className="w-24 h-1 bg-pink-100 mx-auto mt-6 rounded-full"></div>
+                <div className="w-16 md:w-24 h-1 bg-pink-100 mx-auto mt-6 rounded-full"></div>
             </header>
 
             {/* Products Grid */}
-            <section className="px-10 md:px-20 mt-10">
+            <section className="px-4 md:px-20 mt-4 md:mt-10">
                 {products.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+                    /* MOBILE FIX: grid-cols-2 for side-by-side view 
+                       GAP: smaller gap for mobile (gap-4)
+                    */
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-12">
                         {products.map((product) => (
-                            <div key={product.id} className="group bg-white rounded-[2.5rem] overflow-hidden border border-pink-50 shadow-sm hover:shadow-2xl transition-all duration-500">
-                                {/* Product Image - Sourced from /public folder */}
-                                <div className="h-80 overflow-hidden bg-gray-50">
+                            <div key={product.id} className="group bg-white rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-pink-50 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col">
+
+                                {/* Image Container: Responsive heights */}
+                                <div className="h-44 md:h-80 overflow-hidden bg-gray-50 flex items-center justify-center p-2 md:p-4">
                                     <img
-                                        // This ensures that even if the DB has "/image.jpg" or "image.jpg", it resolves correctly
                                         src={product.image_url.startsWith('http') ? product.image_url : `/${product.image_url.replace(/^\//, '')}`}
                                         alt={product.name}
-                                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700"
+                                        className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700"
                                         onError={(e) => {
-                                            console.error(`Failed to load image: ${e.target.src}`);
-                                            e.target.src = 'https://via.placeholder.com/400x500?text=Check+Public+Folder';
+                                            e.target.src = 'https://via.placeholder.com/400x500?text=Product+Image';
                                         }}
                                     />
                                 </div>
 
-                                {/* Product Info */}
-                                <div className="p-8">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <h4 className="text-2xl font-bold text-[#4A3B3B]">{product.name}</h4>
-                                        <span className="bg-pink-50 text-pink-500 font-bold px-4 py-1 rounded-full text-sm text-center">
-                                        {product.price === 0 || product.price === null 
-                                        ? "Customizable for your budget" 
-                                        : formatPrice(product.price)}
-                                        </span>
+                                {/* Product Info: Adjusted spacing for mobile */}
+                                <div className="p-3 md:p-8 flex flex-col flex-grow">
+                                    <div className="mb-2 md:mb-4">
+                                        <h4 className="text-sm md:text-2xl font-bold text-[#4A3B3B] line-clamp-1">{product.name}</h4>
+                                        <div className="mt-1">
+                                            <span className="text-pink-500 font-bold text-[10px] md:text-sm bg-pink-50 px-2 py-0.5 rounded-full inline-block">
+                                                {product.price === 0 || product.price === null
+                                                    ? "Customizable"
+                                                    : formatPrice(product.price)}
+                                            </span>
+                                        </div>
                                     </div>
 
-                                    <p className="text-gray-500 text-sm leading-relaxed mb-6">
+                                    {/* Description: Hidden or clamped on mobile to keep cards uniform */}
+                                    <p className="text-gray-500 text-[10px] md:text-sm leading-relaxed mb-4 line-clamp-2 md:line-clamp-none hidden md:block">
                                         {product.description}
                                     </p>
 
-                                    <div className="flex gap-3">
+                                    <div className="mt-auto">
                                         <Link
                                             to={`/product/${product.id}`}
-                                            className="flex-1 bg-[#FDE2E4] text-[#4A3B3B] py-3 rounded-full font-bold text-center hover:bg-pink-200 transition-colors"
+                                            className="block w-full bg-[#FDE2E4] text-[#4A3B3B] py-2 md:py-3 rounded-full font-bold text-[10px] md:text-base text-center hover:bg-pink-200 transition-colors"
                                         >
-                                            Order Now
+                                            View Details
                                         </Link>
                                     </div>
                                 </div>
@@ -132,7 +132,7 @@ const CategoryDetail = () => {
                     </div>
                 ) : (
                     <div className="text-center py-20 bg-white rounded-[3rem] border border-dashed border-pink-200">
-                        <p className="text-gray-400 italic">Working on new designs for this collection... check back soon! 🌸</p>
+                        <p className="text-gray-400 italic px-6">Working on new designs for this collection... check back soon! 🌸</p>
                     </div>
                 )}
             </section>
