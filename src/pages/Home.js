@@ -56,6 +56,9 @@ const Home = () => {
                         <img
                             src="homepage.jpeg"
                             alt="Main Gift Showcase"
+                            loading="lazy"  // <--- This stops images off-screen from slowing down the initial load
+                            decoding="async"
+                            fetchpriority={isHeroImage ? "high" : "low"}
                             /* 
                                Changed 'object-cover' to 'object-contain' to ensure nothing is cut off.
                                Added 'h-auto' so the container expands to fit the full image height.
